@@ -1,43 +1,51 @@
+# Set Working Directory -------------------------------------------------------
+# setwd('C:/...') 
+
+# path = "C:/Users/xinjueli/Desktop/LAexchange"              #specified by the user
 setwd("C:/Users/xinjueli/Desktop/LAexchange")
+
+# clear variables and close windows
 rm(list = ls(all = TRUE))
 graphics.off()
 
-
+# load packages ---------------------------------------------------------------
 library(Hmisc)
 library(readxl)
 library(forecast)
+
+# Data ------------------------------------------------------------------------
 e     = read_excel("C:/Users/xinjueli/Desktop/LAexchange/FPMMUSChinaFree.xlsx")
 e.1   = as.matrix(e[1:dim(e)[1],  2:dim(e)[2]])
 
-
+#calculate coefficients
 ee    = apply(e.1, c(1,2), as.numeric)
 
 
-h     = 3
+h     = 3                               
 ee.x  = cbind(ee[1:(length(ee[ ,1])-h), c(2:8)])
 ee.y  = ee[(h+1):(length(ee[ ,1])), ]
 
 
 L    = c(12, 16, seq(22, 120, 6))
 
-b0   =   121
-b1   =   length(ee[, 1])-(h+1) 
+b0   =   121                             
+b1   =   length(ee[, 1])-(h+1)           
 
 
 dlmle     = matrix(0, nrow=200, ncol=length(L))
 beta      = matrix(0, nrow=length(L), ncol=7)
 sigma.s   = rep(0,length(L))
-pred      = rep(0, b1)
-pred.1    = rep(0, b1)
-pred.2    = rep(0, b1)
-pred.3    = rep(0, b1)
-sl        = rep(0, 200)
-beta.fi   = matrix(0, nrow=b1, nco=7)
+pred      = rep(0, b1)                          #main prediction 
+pred.1    = rep(0, b1)                          #prediction 1
+pred.2    = rep(0, b1)                          #prediction 2
+pred.3    = rep(0, b1)                          #prediction 3
+sl        = rep(0, 200)                         
+beta.fi   = matrix(0, nrow=b1, nco=7)           
 
-
+# initial value
 cri      = c(1000.000  ,  9.122  ,  4.850  ,  4.206 ,   3.112 ,   3.162  ,  3.008 ,   3.004  ,  2.012  ,  2.002  ,  2.000  ,  2.000 ,   2.000 ,   2.000  ,  2.000  ,  2.000   , 2.000 ,  2.00 ,   0.02)
 
-
+# mle function
 L.mle  = function(theta, sigma, x){
   
   m.s      = length(x[, 1])
@@ -61,14 +69,14 @@ for(t in b0:b1){
   y      = ee.y[i.0:t, 1]
   
   
-  
+  # estimation function
   fit = lm(y~0+ x)
   beta[1, ]= fit$coefficients
   m.s     = length(x[ , 1])
   x.1      = x
   sigma.s[1] = sqrt(var(y- x.1 %*% beta[1, ]))
   
-  
+  # prediction procedure
   for (I in L[2:length(L)]){
     j = j+1
     i.0   = t-I
