@@ -1,0 +1,109 @@
+setwd("C:/Users/xinjueli/Desktop/LAexchange")
+rm(list = ls(all = TRUE))
+graphics.off()
+
+
+library(Hmisc)
+library(readxl)
+library(forecast)
+e     = read_excel("C:/Users/xinjueli/Desktop/LAexchange/FPMMUSChinaFree.xlsx")
+e.1   = as.matrix(e[1:dim(e)[1],  2:dim(e)[2]])
+
+
+ee    = apply(e.1, c(1,2), as.numeric)
+
+
+h     = 3
+ee.x  = cbind(ee[1:(length(ee[ ,1])-h), c(2:8)])
+ee.y  = ee[(h+1):(length(ee[ ,1])), ]
+
+
+L    = c(12, 16, seq(22, 120, 6))
+
+b0   =   121
+b1   =   length(ee[, 1])-(h+1) 
+
+
+dlmle     = matrix(0, nrow=200, ncol=length(L))
+beta      = matrix(0, nrow=length(L), ncol=7)
+sigma.s   = rep(0,length(L))
+pred      = rep(0, b1)
+pred.1    = rep(0, b1)
+pred.2    = rep(0, b1)
+pred.3    = rep(0, b1)
+sl        = rep(0, 200)
+beta.fi   = matrix(0, nrow=b1, nco=7)
+
+
+cri      = c(1000.000  ,  9.122  ,  4.850  ,  4.206 ,   3.112 ,   3.162  ,  3.008 ,   3.004  ,  2.012  ,  2.002  ,  2.000  ,  2.000 ,   2.000 ,   2.000  ,  2.000  ,  2.000   , 2.000 ,  2.00 ,   0.02)
+
+
+L.mle  = function(theta, sigma, x){
+  
+  m.s      = length(x[, 1])
+  x.2      = x
+  A.1      = (-1)*m.s*log(sigma)
+  B.1      = (-1)*(1/(2*sigma^2))
+  D.1      = t(y - x.2 %*% theta ) %*% (y - x.2 %*% theta)
+  E        = A.1+B.1*D.1
+  E
+  
+}
+
+
+for(t in b0:b1){
+  
+  j = 1
+  
+  i.0   = t-L[1]
+  
+  x      = ee.x[i.0:t, ]
+  y      = ee.y[i.0:t, 1]
+  
+  
+  
+  fit = lm(y~0+ x)
+  beta[1, ]= fit$coefficients
+  m.s     = length(x[ , 1])
+  x.1      = x
+  sigma.s[1] = sqrt(var(y- x.1 %*% beta[1, ]))
+  
+  
+  for (I in L[2:length(L)]){
+    j = j+1
+    i.0   = t-I
+    x      = ee.x[i.0:t, ]
+    y      = ee.y[i.0:t, 1]
+    fit = lm(y~0+ x)
+    beta[j, ]= fit$coefficients
+    m.s     = length(y)
+    x.1     = x
+    sigma.s[j] = sqrt(var(y- x.1 %*% beta[j, ]))
+    dlmle[t, j]  = abs(L.mle(beta[j-1, ], sigma.s[j-1], x)-L.mle(beta[j, ], sigma.s[j], x))^(0.5)
+    if (dlmle[t, j]>cri[j]){
+      beta.1 = beta[j-1, ]
+      beta.fi[t, ] = beta[j-1, ]
+      pre = as.numeric ( t( beta.1[1: length(beta.1)])%*% ee.x[(t+1), ] )
+      pred[t+h] = pre
+      sl[t] = L[j-1]
+      break
+    }
+    else{
+      beta.1 = beta[j, ]
+      beta.fi[t, ] = beta[j, ]
+      pre = as.numeric ( t( beta.1[1: length(beta.1)])%*% ee.x[(t+1), ] )
+      pred[t+h] = pre
+      sl[t] = L[j]
+    }
+  }
+}
+
+# Plot the out-of-sample forecat
+da   = as.matrix(e[1:dim(e)[1],1])
+time=as.Date(c(da[1:(b1+h+1)]))
+plot(time[c((b0+h+1):(b1+h+1))] ,  pred[(b0+h):(b1+h)],  lty=3, ylim=c(1.80, 2.0), type = "n", xaxt='n', cex=1.5, xlab='', ylab='log')
+lines(time[c((b0+h+1):(b1+h+1))] ,  (1.00*pred[(b0+h):(b1+h)]+0*ee.y[(b0+1):(b1+1), 1]), lty=3, type = "l", xaxt='n', cex=2.5, col=2)
+lines(time[c((b0+h+1):(b1+h+1))],   ee[(b0+h+1):(b1+h+1)], type = "l", lwd=0.05, xaxt='n', yaxt='n',xlab='', ylab='')
+lines(time[c((b0+h+1):(b1+h+1))],   (0.0*pred[(b0+h):(b1+h)]+1.00*ee[(b0+1):(b1+1), 1]), lty =4, type = "l", cex=2.5, lwd=0.03, col=4, xaxt='n', yaxt='n',xlab='', ylab='')
+axis.Date(1, at = seq(as.Date("2010/1/1"), max(time)+6, "years"))
+legend(time[c(125)],2.00, c("Taylor rule","True value", "Random walk"),lty=c(3,1,3), pch=c('','',''), col=c(2,1,4), cex=0.7, bty='n')
