@@ -1,18 +1,14 @@
-Name of QuantLet: SFEbitreeKO
+Name of QuantLet : SFErmbERF
 
-Published in: Statistics of Financial Markets
+Published in : Statistics of Financial Markets
 
-Description: 'Computes European/American option prices using a binomial tree for the CocaCola (KO) stock with fixed
-	      amount dividends. This quantlet contains a dataset "KO_Bloomberg" and the full code. 
-	       Make sure you download the dataset, specify a path and then run the Quantlet.'
+Description : 'Exchange rate forecasting. This quantlet contains a dataset "FPMMUSChinaFree" and the full code. Make sure you download the dataset, specify a path and then run the Quantlet.'
 
-Keywords: 'binomial, tree, asset, call, put, option, option-price, european-option, dividends, financial, black-scholes'
+Keywords : 'rmb, exchange rate,forecasting'
 
-See also: SFEbitreeFDiv, SFEbitreePDiv, SFEbitreeCDiv, SFSbitreeNDiv 
+Author : Wenjunxi Huang, Xinjue Li and Chen Zhang
 
-Author: Alice Drube
-
-Submitted: Sun, Jan 6, by Alice Drube
+Submitted: Wen, Feb 13, 2019, by Chen Zhang
 
 Input: 
 - n : Number of Intervals
